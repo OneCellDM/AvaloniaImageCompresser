@@ -1,0 +1,97 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+			 
+			 xmlns:Converter="using:AvaloniaImageCompress.Converters"
+			 xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+			 xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+			 mc:Ignorable="d" 
+             x:Class="AvaloniaImageCompress.Views.ZipView" >
+	
+	<UserControl.Styles>
+		<Styles>
+			<Style Selector="Button">
+				<Setter Property="Margin" Value="10"/>
+				<Setter Property="HorizontalAlignment" Value="Center"/>
+				<Setter Property="Background" Value="White" />
+				<Setter Property="Opacity" Value="1"/>
+			</Style>
+			<Style  Selector="Button:pointerover /template/ ContentPresenter" >
+				<Setter Property="Opacity" Value="0.9"/>
+				<Setter Property="Background" Value="White"/>
+
+			</Style>
+
+		</Styles>
+	</UserControl.Styles>
+	<UserControl.Resources>
+		<Converter:StatusToStringConverter x:Key="statusConverter"/>
+	</UserControl.Resources>
+	
+	<Grid Background="White">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+		<Border Grid.Row="0" Background="#2888F6">
+			<TextBlock HorizontalAlignment="Center"
+							   Foreground="White"
+							   FontSize="20"
+							   Margin="10"
+							   FontWeight="DemiBold"
+							   Text="Обработка"/>
+		</Border>
+
+		<DataGrid ScrollViewer.VerticalScrollBarVisibility="Visible"
+						  Grid.Row="1" Items="{Binding Images}"  >
+			<DataGrid.Styles>
+				<StyleInclude Source="/DataGridStyle.axaml"/>
+			</DataGrid.Styles>
+			<DataGrid.Styles>
+				<Style Selector="DataGridCell">
+					<Setter Property="Margin" Value="20"/>
+				</Style>
+			</DataGrid.Styles>
+			<DataGrid.Columns>
+				<DataGridTextColumn  Header="Имя"  Binding="{Binding Title}"/>
+
+				<DataGridTemplateColumn Header="Путь" Width="2*" >
+					<DataTemplate>
+						<TextBlock Text="{Binding Path}" TextWrapping="WrapWithOverflow"/>
+					</DataTemplate>
+				</DataGridTemplateColumn>
+
+				<DataGridTextColumn Header="Статус"  Width="250" Binding="{Binding CompressedStatus,Converter={StaticResource statusConverter}}" />
+			</DataGrid.Columns>
+
+		</DataGrid>
+
+		<Border x:Name="compressBorder"  Background="#2888F6" Grid.Row="2">
+
+			<i:Interaction.Behaviors>
+				<ia:DataTriggerBehavior Binding="{Binding Finished}"  ComparisonCondition="Equal" Value="True" >
+					<ia:ChangePropertyAction TargetObject="{Binding #compressBorder}" PropertyName="Height" Value="60"/>
+				</ia:DataTriggerBehavior>
+
+				<ia:DataTriggerBehavior Binding="{Binding Finished}"  ComparisonCondition="Equal" Value="False" >
+					<ia:ChangePropertyAction TargetObject="{Binding #compressBorder}" PropertyName="Height" Value="0"/>
+				</ia:DataTriggerBehavior>
+			</i:Interaction.Behaviors>
+
+			<Border.Transitions>
+				<Transitions>
+					<DoubleTransition Property="Height" Duration="0:0:0.3"/>
+				</Transitions>
+			</Border.Transitions>
+			<StackPanel>
+				<TextBlock Text="Работа завершена" HorizontalAlignment="Center" FontWeight="Bold"/>
+			<Button Width="200" HorizontalContentAlignment="Center" HorizontalAlignment="Center"  
+					Content="Выйти" 
+					Command="{Binding ExitCommand}"/>
+			</StackPanel>
+		</Border>
+		
+	</Grid>
+</UserControl>
