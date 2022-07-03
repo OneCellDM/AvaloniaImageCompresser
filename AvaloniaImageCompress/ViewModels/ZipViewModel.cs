@@ -3,6 +3,8 @@
 using ReactiveUI;
 using ReactiveUI.Fody.Helpers;
 
+using SkiaSharp;
+
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -29,10 +31,12 @@ namespace AvaloniaImageCompress.ViewModels
         public int ProcessCount { get; set; }
         public IEnumerable<ImageModel> Images { get; set; }
         public IReactiveCommand ExitCommand { get; set; }
+        public IReactiveCommand OpenResultFolderCommand { get; set; }
         private int StepZipp { get; set; }
         public ZipViewModel(IEnumerable<ImageModel> imageModels, string folder, int step)
         {
             ExitCommand = ReactiveCommand.Create(() => CloseZipViewEvent?.Invoke());
+            OpenResultFolderCommand = ReactiveCommand.Create(()=> Process.Start(folder));
             Images = imageModels;
             this._SaveFolder = folder;
 
@@ -42,33 +46,52 @@ namespace AvaloniaImageCompress.ViewModels
             this.StepZipp = step;
             StartProcess();
         }
-      
-        private bool LowQualitty(string filePath, string folder, int compressValue)
+       
+
+        private SKEncodedImageFormat GetImageFormat(string extension)
         {
+
+            return extension.Remove(0, 1) switch
+            {
+                "png" => SKEncodedImageFormat.Png,
+                "jpg" or "jpeg" => SKEncodedImageFormat.Jpeg,
+                "bmp" => SKEncodedImageFormat.Bmp,
+                _=> SKEncodedImageFormat.Jpeg,
+
+            };
+          
+        }
+
+        private bool CompressQualitty(string filePath, string folder, int compressValue)
+        {
+
             try
             {
-                
-                int quallity = 100 - (compressValue * 10);
-                T4Image.Input input = new T4Image.Input(filePath);
-               
-                input.File();
-                if (input.StreamFile != null)
-                {
-                    T4Image.Output output =
-                        new T4Image.Output(T4Image.Output.LevelOptimal.Storage, quallity,
-                                           folder, input.FileName, input.FileExtension);
+                var bitmap = SKBitmap.Decode(filePath);
 
-                    T4Image.Optimizer optimizer = new T4Image.Optimizer(input,output);
-                    optimizer.ExportFile();
-                }
+
+                SKEncodedImageFormat imageFormat = GetImageFormat(Path.GetExtension(filePath));
+
+
+                var newImage = SKImage.FromBitmap(bitmap);
+
+                var imageData = newImage.Encode(imageFormat, 100 - (compressValue * 10));
+
+                var newFileName = Path.Combine(folder, "Compress_" + Path.GetFileName(filePath));
+
+                var stream = new FileStream(newFileName, FileMode.Create, FileAccess.Write);
+
+                imageData.SaveTo(stream);
+                stream.Dispose();
+                newImage.Dispose();
+                imageData.Dispose();
+
+                return true;
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 return false;
             }
-            
-            return true;
-
 
         }
 
@@ -80,8 +103,8 @@ namespace AvaloniaImageCompress.ViewModels
             {
                 foreach (var image in Images)
                 {
-
-                    var res = LowQualitty(image.Path, _SaveFolder, StepZipp);
+                    image.CompressedStatus = CompressedStatusEnum.processed;
+                    var res = CompressQualitty(image.Path, _SaveFolder, StepZipp);
                     image.CompressedStatus = res ? CompressedStatusEnum.Finished : CompressedStatusEnum.Error;
                     ProcessCount--;
 
