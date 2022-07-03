@@ -18,7 +18,7 @@ namespace AvaloniaImageCompress.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private  List<string> Exstentions = new List<string>{ "png", "jpg", "jpeg", "bmp" };
+       
         private List<int> Level { get;  } = new List<int>()
         {
             1,2,3,4,5,6,7,8,9
@@ -91,21 +91,17 @@ namespace AvaloniaImageCompress.ViewModels
                         new FileDialogFilter()
                         {
                             Name = "images",
-                            Extensions =Exstentions
+                            Extensions =IOHelper.Exstentions,
                         }
                     }
                 };
 
-                var files = (await openFileDialog.ShowAsync(WindowInstance))?
-                            .Select(x => new FileInfo(x));
+                var files = (await openFileDialog.ShowAsync(WindowInstance))?.StringToFileInfo();
+                           
 
                 if (files != null)
-                {
-                    foreach (var file in files)
-                    {
-                        AddImageModelFromFile(file);
-                    }
-                }
+                    Images.AddImageModelFromFileInfo(files);
+                
             }
 
         }
@@ -117,28 +113,17 @@ namespace AvaloniaImageCompress.ViewModels
                 var result = await openFolderDialog.ShowAsync(WindowInstance);
                 if (result != null)
                 {
-                    DirectoryInfo directoryInfo = new DirectoryInfo(result);
-                    var files = directoryInfo.GetFiles()
-                                             .Where( x => Exstentions.Contains( x.Extension.Remove(0,1) ) );
 
-                    foreach(var file in files)
-                    {
-                        AddImageModelFromFile(file);
-                    }
+                    var res = IOHelper.GetFilesFromFolder(result);
+                    if(res!=null)
+                        Images.AddImageModelFromFileInfo(res);
+                  
                 }
             }
 
         }
+       
       
-        private void AddImageModelFromFile(FileInfo file)
-        {
-            Images.Add(new ImageModel()
-            {
-                Path = file.FullName,
-                Title = file.Name,
-                FileSize = file.Length,
-                
-            });
-        } 
+       
     }
 }

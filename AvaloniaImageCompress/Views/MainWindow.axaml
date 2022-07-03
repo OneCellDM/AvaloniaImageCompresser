@@ -5,10 +5,11 @@
 		xmlns:Converter="using:AvaloniaImageCompress.Converters"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-		
+		xmlns:b="using:AvaloniaImageCompress.Behaviors"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
 		xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
         xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"
+		      xmlns:idd="clr-namespace:Avalonia.Xaml.Interactions.DragAndDrop;assembly=Avalonia.Xaml.Interactions"
         x:Class="AvaloniaImageCompress.Views.MainWindow"
         Icon="/Assets/avalonia-logo.ico"
 		
@@ -32,11 +33,26 @@
 			</Style>
 
 		</Styles>
+
+		<Style Selector="Grid.ItemsDrop">
+			<Style.Resources>
+				<b:DataGridDropHandler x:Key="DataGridDropHandler" />
+			</Style.Resources>
+			<Setter Property="(i:Interaction.Behaviors)">
+				<i:BehaviorCollectionTemplate>
+					<i:BehaviorCollection>
+
+						<idd:ContextDropBehavior   Handler="{StaticResource DataGridDropHandler}"/>
+					</i:BehaviorCollection>
+				</i:BehaviorCollectionTemplate>
+			</Setter>
+		</Style>
+		
 	</Window.Styles>
     <Design.DataContext>
         <vm:MainWindowViewModel/>
     </Design.DataContext>
-	<Grid Background="White">
+	<Grid Background="White" Classes="ItemsDrop">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition/>
@@ -92,15 +108,18 @@
 		</Border>
 		
 		<DataGrid ScrollViewer.VerticalScrollBarVisibility="Visible"   
-				  Grid.Row="1" Items="{Binding Images}"  >
+				  Grid.Row="1" Items="{Binding Images}" Classes="ItemsDrop"  >
+
 			<DataGrid.Styles>
 				<StyleInclude Source="/DataGridStyle.axaml"/>
 			</DataGrid.Styles>
+			
 			<DataGrid.Styles>
 				<Style Selector="DataGridCell">
 					<Setter Property="Margin" Value="10"/>
 				</Style>
 			</DataGrid.Styles>
+			
 			<DataGrid.Columns>
 				<DataGridTextColumn  Header="Имя"  Binding="{Binding Title}"/>
 				
