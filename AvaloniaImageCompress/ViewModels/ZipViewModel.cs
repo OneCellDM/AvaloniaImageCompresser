@@ -19,7 +19,7 @@ namespace AvaloniaImageCompress.ViewModels
     public class ZipViewModel:ReactiveObject
     {
         private string _SaveFolder;
-        private static SemaphoreSlim semaphoreSlim = new SemaphoreSlim(2, 3);
+       
         public delegate void CloseZipView();
         public event CloseZipView CloseZipViewEvent;
        
@@ -42,45 +42,33 @@ namespace AvaloniaImageCompress.ViewModels
             this.StepZipp = step;
             StartProcess();
         }
-        public ImageCodecInfo GetimageCodecInfo(string FileExstention)
+      
+        private bool LowQualitty(string filePath, string folder, int compressValue)
         {
-            switch (FileExstention.ToLower())
+            try
             {
-                case "jpg": return ImageCodecInfo.GetImageEncoders()[1];
-                case "jpeg": return ImageCodecInfo.GetImageEncoders()[1];
-                case "png": return ImageCodecInfo.GetImageEncoders()[4];
-            }
-            return null;
-        }
-        private bool LowQualitty(string filePath, string folder, long compressValue)
-        {
-            using (Bitmap bmp = new Bitmap(filePath))
-            {
-                try
+                
+                int quallity = 100 - (compressValue * 10);
+                T4Image.Input input = new T4Image.Input(filePath);
+               
+                input.File();
+                if (input.StreamFile != null)
                 {
-                    ImageCodecInfo Codec = GetimageCodecInfo(filePath.Split('.')[filePath.Split('.').Length - 1]);
-                    if (Codec != null)
-                    {
-                        var v = 100L - (compressValue * 10);
-                        bmp.Save(
-                            folder + "\\compressed_" + filePath.Split('\\')[filePath.Split('\\').Length - 1],
-                            Codec,
-                            new EncoderParameters()
-                            {
-                                Param = new EncoderParameter[] {
-                                new EncoderParameter(System.Drawing.Imaging.Encoder.Quality,v),
+                    T4Image.Output output =
+                        new T4Image.Output(T4Image.Output.LevelOptimal.Storage, quallity,
+                                           folder, input.FileName, input.FileExtension);
 
-                                }
-
-                            });
-                        return true;
-                    }
-                    else return false;
+                    T4Image.Optimizer optimizer = new T4Image.Optimizer(input,output);
+                    optimizer.ExportFile();
                 }
-                catch(Exception) { return false; }
-
             }
-           
+            catch(Exception ex)
+            {
+                return false;
+            }
+            
+            return true;
+
 
         }
 
@@ -88,24 +76,19 @@ namespace AvaloniaImageCompress.ViewModels
         {
 
             ProcessCount = Images.Count();
+            Task.Run(() =>
+            {
                 foreach (var image in Images)
                 {
-                    Task.Run(() =>
-                    {
-                        semaphoreSlim.Wait();
 
-                        var res = LowQualitty(image.Path, _SaveFolder, StepZipp );
-                        image.CompressedStatus = res ? CompressedStatusEnum.Finished : CompressedStatusEnum.Error;
-                        ProcessCount--;
-                        
-                        Finished = ProcessCount == 0;
-                        
-                           
-                        
-                        semaphoreSlim.Release();
-                    });
-                   
+                    var res = LowQualitty(image.Path, _SaveFolder, StepZipp);
+                    image.CompressedStatus = res ? CompressedStatusEnum.Finished : CompressedStatusEnum.Error;
+                    ProcessCount--;
+
+                    Finished = ProcessCount == 0;
+
                 }
+            });
            
             
         }
