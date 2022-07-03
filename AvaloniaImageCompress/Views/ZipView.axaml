@@ -72,7 +72,7 @@
 
 			<i:Interaction.Behaviors>
 				<ia:DataTriggerBehavior Binding="{Binding Finished}"  ComparisonCondition="Equal" Value="True" >
-					<ia:ChangePropertyAction TargetObject="{Binding #compressBorder}" PropertyName="Height" Value="60"/>
+					<ia:ChangePropertyAction TargetObject="{Binding #compressBorder}" PropertyName="Height" Value="90"/>
 				</ia:DataTriggerBehavior>
 
 				<ia:DataTriggerBehavior Binding="{Binding Finished}"  ComparisonCondition="Equal" Value="False" >
@@ -91,9 +91,6 @@
 			<Button Width="200" HorizontalContentAlignment="Center"   
 					Content="Выйти" 
 					Command="{Binding ExitCommand}"/>
-					<Button  HorizontalContentAlignment="Center" HorizontalAlignment="Center"
-					Content="Папка с результатами"
-					Command="{Binding OpenResultFolderCommand}"/>
 				</StackPanel>
 			</StackPanel>
 		</Border>

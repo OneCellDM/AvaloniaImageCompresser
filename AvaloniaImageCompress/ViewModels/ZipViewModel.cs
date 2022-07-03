@@ -36,7 +36,7 @@ namespace AvaloniaImageCompress.ViewModels
         public ZipViewModel(IEnumerable<ImageModel> imageModels, string folder, int step)
         {
             ExitCommand = ReactiveCommand.Create(() => CloseZipViewEvent?.Invoke());
-            OpenResultFolderCommand = ReactiveCommand.Create(()=> Process.Start(folder));
+           
             Images = imageModels;
             this._SaveFolder = folder;
 
