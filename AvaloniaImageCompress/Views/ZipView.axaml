@@ -32,6 +32,7 @@
 	<Grid Background="White">
 		<Grid.RowDefinitions>
 			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
 			<RowDefinition/>
 			<RowDefinition Height="Auto"/>
 		</Grid.RowDefinitions>
@@ -43,9 +44,10 @@
 							   FontWeight="DemiBold"
 							   Text="Обработка"/>
 		</Border>
-
+		<ProgressBar Grid.Row="1" ShowProgressText="True" Value="{Binding ProgressValue}" 
+					 Minimum="0" Maximum="{Binding FinishedCount}"/>
 		<DataGrid ScrollViewer.VerticalScrollBarVisibility="Visible"
-						  Grid.Row="1" Items="{Binding Images}"  >
+						  Grid.Row="2" Items="{Binding Images}"  >
 			<DataGrid.Styles>
 				<StyleInclude Source="/DataGridStyle.axaml"/>
 			</DataGrid.Styles>
@@ -68,7 +70,7 @@
 
 		</DataGrid>
 
-		<Border x:Name="compressBorder"  Background="#2888F6" Grid.Row="2">
+		<Border x:Name="compressBorder"  Background="#2888F6" Grid.Row="3">
 
 			<i:Interaction.Behaviors>
 				<ia:DataTriggerBehavior Binding="{Binding Finished}"  ComparisonCondition="Equal" Value="True" >

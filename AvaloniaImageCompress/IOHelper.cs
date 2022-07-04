@@ -20,7 +20,7 @@ namespace AvaloniaImageCompress
         public static bool CheckValideExtension(this string path)=>
             Exstentions.Contains(Path.GetExtension(path).Remove(0, 1));
           
-        public static  IEnumerable<FileInfo>? GetFilesFromFolder(this string path)
+        public static  IEnumerable<FileInfo>? GetFilesFromFolder (this string path)
         {
            
                 DirectoryInfo directoryInfo = new DirectoryInfo(path);

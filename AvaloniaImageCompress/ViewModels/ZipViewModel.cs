@@ -20,6 +20,7 @@ namespace AvaloniaImageCompress.ViewModels
 {
     public class ZipViewModel:ReactiveObject
     {
+        private Semaphore Semaphore = new Semaphore(1, 2);
         private string _SaveFolder;
        
         public delegate void CloseZipView();
@@ -28,7 +29,10 @@ namespace AvaloniaImageCompress.ViewModels
 
         [Reactive]
         public bool Finished { get; set; }
-        public int ProcessCount { get; set; }
+        [Reactive]
+        public int ProgressValue { get; set; }
+        public int FinishedCount { get; set; }
+        
         public IEnumerable<ImageModel> Images { get; set; }
         public IReactiveCommand ExitCommand { get; set; }
         public IReactiveCommand OpenResultFolderCommand { get; set; }
@@ -38,6 +42,7 @@ namespace AvaloniaImageCompress.ViewModels
             ExitCommand = ReactiveCommand.Create(() => CloseZipViewEvent?.Invoke());
            
             Images = imageModels;
+            FinishedCount = imageModels.Count();
             this._SaveFolder = folder;
 
             foreach(var image in imageModels)
@@ -98,20 +103,24 @@ namespace AvaloniaImageCompress.ViewModels
         public void StartProcess()
         {
 
-            ProcessCount = Images.Count();
-            Task.Run(() =>
-            {
+            ProgressValue = 0;
+           
                 foreach (var image in Images)
                 {
-                    image.CompressedStatus = CompressedStatusEnum.processed;
-                    var res = CompressQualitty(image.Path, _SaveFolder, StepZipp);
-                    image.CompressedStatus = res ? CompressedStatusEnum.Finished : CompressedStatusEnum.Error;
-                    ProcessCount--;
+                    Task.Run(() =>
+                    {
+                        Semaphore.WaitOne();
+                        image.CompressedStatus = CompressedStatusEnum.processed;
+                        var res = CompressQualitty(image.Path, _SaveFolder, StepZipp);
+                        image.CompressedStatus = res ? CompressedStatusEnum.Finished : CompressedStatusEnum.Error;
+                        ProgressValue++;
 
-                    Finished = ProcessCount == 0;
+                        Finished = ProgressValue == Images.Count();
+                        Semaphore.Release();
+                    });
 
                 }
-            });
+          
            
             
         }
